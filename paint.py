@@ -24,6 +24,11 @@ class Menu(ttk.Frame):
         self.columnconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12), weight=1, uniform='a') 
         self.rowconfigure(0, weight=1, uniform='a')
 
+        global item_ids
+        global last_item_id 
+        item_ids = []
+        last_item_id = None
+
         global brush_color
         global brush_size
         brush_color = tk.StringVar(value='black')
@@ -44,12 +49,22 @@ class Menu(ttk.Frame):
         def delete_canvas_items():
             self.parent.paint_gui.delete('all') 
 
+        def delete_last_item():
+            for i in range(3):
+                if item_ids: # Check if there are items to delete
+                    id_to_delete = item_ids.pop() # Get the last added ID and remove it from the list
+                    self.parent.paint_gui.delete(id_to_delete)
+                    last_item_id = item_ids[-1] if item_ids else None # Update last_item_id
+                elif last_item_id is not None: # If only tracking the single last item
+                    self.parent.paint_gui.delete(last_item_id)
+                    last_item_id = None
 
         # widgets
         ttk.Button(self, text='-' , command= decrease_brush_size).grid(column=0, row=0, sticky='nsew')
         ttk.Label(self, textvariable=brush_size , anchor='center' , font=(20)).grid(column=1, row=0, sticky='nsew')
         ttk.Button(self, text='+' , command= increase_brush_size).grid(column=2, row=0, sticky='nsew')
-        ttk.Button(self, text='Clear All' , command= delete_canvas_items).grid(column=5, row=0, columnspan = 2, sticky='nsew')
+        ttk.Button(self, text='X' , command= delete_canvas_items).grid(column=5, row=0, sticky='nsew')
+        ttk.Button(self, text='<--' , command= delete_last_item).grid(column=4, row=0, sticky='nsew')
         ttk.Entry(self).grid(column=9, row=0, columnspan=3, sticky='nsew')
         ttk.Button(self, text='save' ).grid(column=12, row=0, sticky='nsew')
 
@@ -108,11 +123,15 @@ class Paint(tk.Canvas):
 
 
     def draw_on_canvas(self,event):
+        global last_item_id
+        global item_ids
         x= event.x
         y= event.y
         color = brush_color.get()
         radius = brush_size.get()/2
-        self.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline= color)
+        new_item_id = self.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline= color)
+        last_item_id = new_item_id
+        item_ids.append(new_item_id)
 
 
 
