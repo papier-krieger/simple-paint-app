@@ -25,14 +25,12 @@ class Menu(ttk.Frame):
         self.rowconfigure(0, weight=1, uniform='a')
 
         global item_ids
-        global last_item_id 
         item_ids = []
-        last_item_id = None
 
         global brush_color
         global brush_size
         brush_color = tk.StringVar(value='black')
-        brush_size = tk.IntVar(value=4)
+        brush_size = tk.IntVar(value=6)
 
      
         # Fuctions
@@ -43,7 +41,7 @@ class Menu(ttk.Frame):
 
         def increase_brush_size():
             global brush_size
-            current_brush_size = min(20,brush_size.get()+1)
+            current_brush_size = min(30,brush_size.get()+1)
             brush_size.set(current_brush_size) 
 
         def delete_canvas_items():
@@ -54,10 +52,6 @@ class Menu(ttk.Frame):
                 if item_ids: # Check if there are items to delete
                     id_to_delete = item_ids.pop() # Get the last added ID and remove it from the list
                     self.parent.paint_gui.delete(id_to_delete)
-                    last_item_id = item_ids[-1] if item_ids else None # Update last_item_id
-                elif last_item_id is not None: # If only tracking the single last item
-                    self.parent.paint_gui.delete(last_item_id)
-                    last_item_id = None
 
         # widgets
         ttk.Button(self, text='-' , command= decrease_brush_size).grid(column=0, row=0, sticky='nsew')
@@ -130,7 +124,6 @@ class Paint(tk.Canvas):
         color = brush_color.get()
         radius = brush_size.get()/2
         new_item_id = self.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline= color)
-        last_item_id = new_item_id
         item_ids.append(new_item_id)
 
 
