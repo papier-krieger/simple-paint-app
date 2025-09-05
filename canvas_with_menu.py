@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import simpledialog
+from tkinter import messagebox
 import json
 import os
 
@@ -58,7 +60,7 @@ def save_canvas_to_json(canvas, filename='test.canvas.json'):
         print(f'Error saving canvas data {e}')
 
 
-def load_canvas_from_json(canvas, filename='test.canvas.json'):
+def load_canvas_from_json(canvas, filename):
     try:
         with open(filename, 'r') as f:
             canvas_items_data = json.load(f)
@@ -79,14 +81,58 @@ def load_canvas_from_json(canvas, filename='test.canvas.json'):
     print(f'Canvas data loaded from {filename}')
 
 
-file_menu.add_command(label='Save canvas', command= lambda: save_canvas_to_json(canvas))
+
+
+def save_as(canvas):
+    name = simpledialog.askstring('Input','Save canvas as: ')
+    name = name + '.canvas.json'
+    if name != '.canvas.json':
+        if name not in file_names:
+            save_canvas_to_json(canvas=canvas, filename=name)
+        else:
+            print('Name is already used!!! Are you sure to use this name?')
+            save_as_2(canvas, name)
+    else:
+        print('Empty name string is not allowed')
+        save_as(canvas)
+
+def save_as_2(canvas, name):
+    result = messagebox.askokcancel('Confirmation',f'The name "{name[:-12]}" is already in use. Do you want to use it anyway?')
+
+    if result:
+        save_canvas_to_json(canvas=canvas, filename=name)
+    else:
+        print('Saving process aborted')
+
+
+def delete_canvas(canvas, filename):
+    folder_path = '/home/aries/Desktop/projects/simple-paint-app'
+    file_name = filename
+    file_path = os.path.join(folder_path, file_name)
+    try:
+        os.remove(file_path)
+        file_names.remove(file_name)
+        delete_submenu.delete(file_name[:-12])
+        import_submenu.delete(file_name[:-12])
+        print(f'The file "{file_name}" deleted successfully.')
+    except Exception as e:
+        print(f'An unexpected error occured: {e}')
+
+
+
+file_menu.add_command(label='Save as', command= lambda: save_as(canvas))
 # file_menu.add_separator()
 import_submenu = tk.Menu(menubar, tearoff=False)
-for file_name in file_names: 
-    import_submenu.add_command(label=file_name, command= lambda: load_canvas_from_json(canvas, file_name))
+for file_name in file_names:
+    f_n = file_name
+    import_submenu.add_command(label=file_name[:-12], command= lambda f_n = file_name: load_canvas_from_json(canvas, filename=f_n))
 file_menu.add_cascade(label='Import', menu=import_submenu)
 
-
+delete_submenu = tk.Menu(menubar, tearoff=False)
+for file_name in file_names:
+    f_n = file_name
+    delete_submenu.add_command(label=file_name[:-12], command= lambda f_n = file_name: delete_canvas(canvas, filename=f_n))
+file_menu.add_cascade(label='Delete', menu=delete_submenu)
 
 
 canvas = tk.Canvas(window, bg = 'lightblue')
