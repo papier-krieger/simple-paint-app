@@ -24,6 +24,10 @@ window.geometry('600x400')
 window.title('Canvas with Menu')
 
 
+#
+
+
+
 # menubar 
 menubar = tk.Menu(window)
 # window.configure(menu= menubar)

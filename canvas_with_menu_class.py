@@ -23,20 +23,19 @@ class App(tk.Tk):
 class Canvas(tk.Canvas):
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
         self.place(x=0,y=0, relwidth=0.9, relheight=0.9)
         self.configure(bg='white')
 
         self.bind('<B1-Motion>', self.draw_on_canvas)
 
     def draw_on_canvas(self,event):
-        global last_item_id
-        global item_ids
         x= event.x
         y= event.y
-        color = brush_color.get()
-        radius = brush_size.get()/2
+        color = self.parent.main_panel.brush_color.get()
+        radius = self.parent.main_panel.brush_size.get()/2
         new_item_id = self.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color, outline= color)
-        item_ids.append(new_item_id)
+        self.parent.main_panel.item_ids.append(new_item_id)
 
 class MainPanel(ttk.Frame):
     def __init__(self,parent):
@@ -44,44 +43,53 @@ class MainPanel(ttk.Frame):
         self.parent= parent
         self.place(relx=0, rely=1, relwidth=0.9, relheight=0.1, anchor='sw')
 
-        
-        global item_ids
-        item_ids = []
+        self.item_ids = []
 
-        global brush_color
-        global brush_size
-        brush_color = tk.StringVar(value='black')
-        brush_size = tk.IntVar(value=6)
+        self.brush_color = tk.StringVar(value='black')
+        self.brush_size = tk.IntVar(value=10)
 
         # methods
         def decrease_brush_size():
-            global brush_size
-            current_brush_size = max(0,brush_size.get()-1)
-            brush_size.set(current_brush_size) 
+            current_brush_size = max(0,self.brush_size.get()-1)
+            self.brush_size.set(current_brush_size) 
 
         def increase_brush_size():
-            global brush_size
-            current_brush_size = min(30,brush_size.get()+1)
-            brush_size.set(current_brush_size) 
+            current_brush_size = min(50,self.brush_size.get()+1)
+            self.brush_size.set(current_brush_size) 
 
+        def show_brush_size(value):
+            value = int(float(value))
+            # print(value)
+            self.brush_size.set(value)
+            # print(self.brush_size.get())
 
+            
         # widgets
-        ttk.Button(self, text='-' , command= decrease_brush_size).pack(side='left', expand=True, fill='x')
-        ttk.Label(self, textvariable=brush_size , anchor='center' , font=(20)).pack(side='left', expand=True, fill='x')
-        ttk.Button(self, text='+' , command= increase_brush_size).pack(side='left', expand=True, fill='x')
-
+        ttk.Button(self, text='-' , command= decrease_brush_size).pack(side='left', expand=True, fill='both')
+        scale_frame = ttk.Frame(self)
+        scale_frame.pack(side='left', expand=True, fill='x', padx=5)
+        ttk.Scale(
+            scale_frame, 
+            command= show_brush_size, 
+            from_=0, 
+            to=50,
+            length=300,
+            variable = self.brush_size
+            ).pack(expand=True, fill='x')
+        ttk.Label(scale_frame, textvariable=self.brush_size , anchor='center' , font=(30)).pack(expand=True, fill='x')
+        ttk.Button(self, text='+' , command= increase_brush_size).pack(side='left', expand=True, fill='both')
 
 class ColorPanel(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        self.parent = parent
         
         self.place(relx=1, rely=0, relwidth=0.1 , relheight= 0.9, anchor='ne')
         self.pack_propagate(False)
 
         # methods 
         def set_color(color):
-            global brush_color
-            brush_color.set(color)  
+            self.parent.main_panel.brush_color.set(color)  
        
         
         # style object
@@ -195,8 +203,8 @@ class MenuBar(tk.Menu):
 
         def delete_last_item():
             for i in range(3):
-                if item_ids: # Check if there are items to delete
-                    id_to_delete = item_ids.pop() # Get the last added ID and remove it from the list
+                if self.parent.main_panel.item_ids: # Check if there are items to delete
+                    id_to_delete = self.parent.main_panel.item_ids.pop() # Get the last added ID and remove it from the list
                     self.parent.canvas.delete(id_to_delete)
 
 
@@ -208,7 +216,6 @@ class MenuBar(tk.Menu):
         self.add_command(label='Import', command=import_json_data)
         self.add_command(label='Export')
         self.add_command(label='<--', command=delete_last_item)
-
 
 
 
